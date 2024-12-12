@@ -16,7 +16,7 @@ void splitString(char string[100], char **str1, char **str2, char **str3) {
       *str2 = aux;
     } else if(count == 2) {
       *str3 = aux;
-	}
+	  }
     count++;
 
 	if(aux[strlen(aux)+1] == '"')
@@ -35,16 +35,16 @@ char* actualDate(void) {
   return text;
 }
 
-int tasksLenght(FILE *file) {
+int tasksLength(FILE *file) {
   fseek(file, 0, SEEK_SET);
   
   char buffer[1024]; 
   int len = fread(buffer, 1, sizeof(buffer), file); 
   cJSON *json = cJSON_Parse(buffer);
-  int lenght = (cJSON_GetArraySize(cJSON_GetObjectItemCaseSensitive(json, "tasks")) + 1);
+  int length = (cJSON_GetArraySize(cJSON_GetObjectItemCaseSensitive(json, "tasks")) + 1);
   
   cJSON_Delete(json);
-  return lenght;
+  return length;
 }
 
 cJSON* createTask(char *desc, int id) {
@@ -149,7 +149,7 @@ void addTask(char *description) {
     
     cJSON *json = cJSON_Parse(buffer);
     cJSON *array = cJSON_GetObjectItemCaseSensitive(json, "tasks");
-	  cJSON_AddItemToArray(array, createTask(description, tasksLenght(data)));
+	  cJSON_AddItemToArray(array, createTask(description, tasksLength(data)));
     
     stringJson = cJSON_Print(json);
     data = fopen("data.json", "w");

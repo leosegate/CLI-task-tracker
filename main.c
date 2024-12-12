@@ -63,7 +63,7 @@ cJSON* createTask(char *desc, int id) {
 void readJSON() {
   char *string = NULL;
   int nextID;
-  FILE *fp = fopen("data_teste.json", "r"); 
+  FILE *fp = fopen("data.json", "r"); 
   if (fp == NULL) { 
     printf("Error: Unable to open the file.\n");  
   }
@@ -101,7 +101,7 @@ void readJSON() {
 
   string = cJSON_Print(json);
 
-  fp = fopen("data_teste.json", "w");
+  fp = fopen("data.json", "w");
   if(fp == NULL) {
   	printf("ERRO");
   } else {
@@ -121,7 +121,7 @@ char isEmpty(FILE *file) {
 }
 
 void createJSONStructure(void) {
-  FILE *data = fopen("data_teste.json", "w");
+  FILE *data = fopen("data.json", "w");
   char *json = NULL;
 
   cJSON *object = cJSON_CreateObject();
@@ -137,7 +137,7 @@ void createJSONStructure(void) {
 
 void addTask(char *description) {
   char *stringJson = NULL;
-  FILE *data = fopen("data_teste.json", "r");
+  FILE *data = fopen("data.json", "r");
   if (data == NULL) { 
     printf("Error: Unable to open the file.\n");  
   } else {
@@ -152,7 +152,7 @@ void addTask(char *description) {
 	  cJSON_AddItemToArray(array, createTask(description, tasksLenght(data)));
     
     stringJson = cJSON_Print(json);
-    data = fopen("data_teste.json", "w");
+    data = fopen("data.json", "w");
 	  fputs(stringJson, data);
 
     cJSON_Delete(json);

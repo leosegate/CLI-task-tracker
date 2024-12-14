@@ -63,58 +63,6 @@ cJSON* createTask(char *desc, int id, char *dateTime) {
   return task;
 }
 
-/*
-void readJSON() {
-  char *string = NULL;
-  int nextID;
-  FILE *fp = fopen("data.json", "r"); 
-  if (fp == NULL) { 
-    printf("Error: Unable to open the file.\n");  
-  }
-
-  char buffer[1024]; 
-  int len = fread(buffer, 1, sizeof(buffer), fp); 
-  fclose(fp);
-
-  cJSON *json = cJSON_Parse(buffer); 
-  if (json == NULL) { 
-    const char *error_ptr = cJSON_GetErrorPtr(); 
-    if (error_ptr != NULL) { 
-      printf("Error: %s\n", error_ptr); 
-    } 
-    cJSON_Delete(json); 
-    return 1; 
-  }
-
-  nextID = (cJSON_GetArraySize(cJSON_GetObjectItemCaseSensitive(json, "tasks")) + 1);
-  printf("%d\n", nextID);
-
-  printf("1");
-  cJSON *task = cJSON_CreateObject();
-  printf("2");
-  cJSON *array = cJSON_GetObjectItemCaseSensitive(json, "tasks");
-  printf("3");
-
-  cJSON_AddNumberToObject(task, "id", nextID);
-  cJSON_AddStringToObject(task, "description", "arrumar quarto");
-  cJSON_AddStringToObject(task, "status", "complete");
-  cJSON_AddStringToObject(task, "createdAt", actualDate());
-  printf("1");
-  cJSON_AddItemToArray(array, task);
-  printf("2");
-
-  string = cJSON_Print(json);
-
-  fp = fopen("data.json", "w");
-  if(fp == NULL) {
-  	printf("ERRO");
-  } else {
-  	fputs(string, fp);
-  	fclose(fp);
-  }
-}
-*/
-
 char isEmpty(FILE *file) {
   fseek(file, 0, SEEK_END);
   int size = ftell(file);

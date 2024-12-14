@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 #include "cJSON.h"
 #include "cJSON.c"
 
@@ -32,7 +33,10 @@ char* actualDate(void) {
   struct tm *t = localtime(&now);
 
   strftime(text, sizeof(text)-1, "%d/%m/%Y - %H:%M", t);
-  return text;
+  char *dateTime = malloc(100 * sizeof(char));
+  strcpy(dateTime, text);
+  printf("%s\n", dateTime);
+  return dateTime;
 }
 
 int tasksLength(FILE *file) {
@@ -47,19 +51,19 @@ int tasksLength(FILE *file) {
   return length;
 }
 
-cJSON* createTask(char *desc, int id) {
-  char *string = NULL;
+cJSON* createTask(char *desc, int id, char *dateTime) {
   cJSON *task = cJSON_CreateObject();
 
   cJSON_AddNumberToObject(task, "id", id);
   cJSON_AddStringToObject(task, "description", desc);
   cJSON_AddStringToObject(task, "status", "to-do");
-  cJSON_AddStringToObject(task, "createdAt", actualDate());
-  cJSON_AddStringToObject(task, "updatedAt", cJSON_CreateNull());
+  cJSON_AddStringToObject(task, "createdAt", dateTime);
+  cJSON_AddStringToObject(task, "updatedAt", "");
   
   return task;
 }
 
+/*
 void readJSON() {
   char *string = NULL;
   int nextID;
@@ -109,6 +113,7 @@ void readJSON() {
   	fclose(fp);
   }
 }
+*/
 
 char isEmpty(FILE *file) {
   fseek(file, 0, SEEK_END);
@@ -137,6 +142,8 @@ void createJSONStructure(void) {
 
 void addTask(char *description) {
   char *stringJson = NULL;
+  char *date = actualDate();
+
   FILE *data = fopen("data.json", "r");
   if (data == NULL) { 
     printf("Error: Unable to open the file.\n");  
@@ -149,7 +156,7 @@ void addTask(char *description) {
     
     cJSON *json = cJSON_Parse(buffer);
     cJSON *array = cJSON_GetObjectItemCaseSensitive(json, "tasks");
-	  cJSON_AddItemToArray(array, createTask(description, tasksLength(data)));
+	  cJSON_AddItemToArray(array, createTask(description, tasksLength(data), date));
     
     stringJson = cJSON_Print(json);
     data = fopen("data.json", "w");
@@ -158,6 +165,7 @@ void addTask(char *description) {
     cJSON_Delete(json);
     cJSON_free(stringJson);
     fclose(data);
+    free(date);
   }
 }
 
@@ -174,13 +182,9 @@ void verifyInput(char string[100]) {
 
 int main() { 
   char input[100];
-  gets(&input);
+  gets(input);
   verifyInput(input);
-  //char *desc = "lavar louca";
-  //char *aux = createTask(desc);
-  //readJSON();
 
-
-  //printf("%s", aux);
+  getch();
   return 0;
 }

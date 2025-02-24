@@ -73,6 +73,33 @@ char isEmpty(FILE *file) {
   return 0;
 }
 
+void deleteTask(int id) {
+  char *stringJson = NULL;
+  FILE *data = fopen("data.json", "r");
+  
+  if (data == NULL) { 
+    printf("Error: Unable to open the file.\n");  
+  } else if(isEmpty(data)) {
+    printf("Nao existe tarefas para excluir!\n");
+  } else {
+    char buffer[1024]; 
+    int len = fread(buffer, 1, sizeof(buffer), data);
+    fclose(data);
+
+    cJSON *json = cJSON_Parse(buffer);
+    cJSON *array = cJSON_GetObjectItemCaseSensitive(json, "tasks");
+    
+    cJSON_DeleteItemFromArray(array, id-1);
+  
+    stringJson = cJSON_Print(json);
+    data = fopen("data.json", "w");
+	  fputs(stringJson, data);
+
+    cJSON_Delete(json);
+    cJSON_free(stringJson);
+  }
+}
+
 void createJSONStructure(void) {
   FILE *data = fopen("data.json", "w");
   char *json = NULL;
@@ -125,6 +152,9 @@ void verifyInput(char string[100]) {
   
   if(strcmp(str1, "add") == 0) {
     addTask(str2);
+  }
+  if(strcmp(str1, "delete") == 0) {
+    deleteTask(str2);
   }
 }
 

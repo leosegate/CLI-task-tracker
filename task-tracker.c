@@ -81,7 +81,7 @@ void updateTasksIDs() {
   FILE *data = fopen("data.json", "r");
   char buffer[1024];
   int len = fread(buffer, 1, sizeof(buffer), data);
-  tasksAmount = tasksLength(data) - 2;
+  tasksAmount = tasksLength(data);
   fclose(data);
   cJSON *task;
   cJSON *aux;
@@ -90,33 +90,22 @@ void updateTasksIDs() {
 
   for(i=0; i <= tasksAmount; i++) {
     task = cJSON_DetachItemFromArray(array, i);
-    //aux = cJSON_GetObjectItemCaseSensitive(task, "id");
+    stringJson = cJSON_Print(task);
     aux = cJSON_CreateNumber(i+1);
     cJSON_ReplaceItemInObject(task, "id", aux);
+    stringJson = cJSON_Print(task);
+  
     cJSON_InsertItemInArray(array, i, task);
     cJSON_free(task);
     cJSON_free(aux);
-    printf("%d ", i);
   }
-  
-  /*
-  task = cJSON_DetachItemFromArray(array, 0);
-  aux = cJSON_GetObjectItemCaseSensitive(task, "id");
-  aux = cJSON_CreateNumber(80);
-  cJSON_ReplaceItemInObject(task, "id", aux);
-  char *string = cJSON_Print(task);
-  printf("%s", string);
-  
-  cJSON_InsertItemInArray(array, i, task);
-  */
 
   stringJson = cJSON_Print(json);
   data = fopen("data.json", "w");
   fputs(stringJson, data);
 
   cJSON_Delete(json);
-  cJSON_Delete(array);
-  //cJSON_free(array);
+  cJSON_free(array);
   cJSON_free(stringJson);
 } 
 
@@ -127,33 +116,24 @@ void deleteTask(int id) {
   if (data == NULL) { 
     printf("Error: Unable to open the file.\n");  
   } else if(isEmpty(data)) {
-    printf("Nao existe tarefas para excluir!\n");
+    printf("There are no tasks to delete!\n");
   } else {
     char buffer[1024]; 
     int len = fread(buffer, 1, sizeof(buffer), data);
     fclose(data);
 
-    printf("teste 1");
-
     cJSON *json = cJSON_Parse(buffer);
     cJSON *array = cJSON_GetObjectItemCaseSensitive(json, "tasks");
-    
     cJSON_DeleteItemFromArray(array, id-1);
   
-    printf("teste 2");
-
     stringJson = cJSON_Print(json);
     data = fopen("data.json", "w");
 	  fputs(stringJson, data);
 
-    printf("teste 3");
-
     cJSON_Delete(json);
-    printf("teste 4");
-    cJSON_Delete(array);
-    printf("teste 5");
+    cJSON_free(array);
     cJSON_free(stringJson);
-    printf("teste 6");
+    fclose(data);
     updateTasksIDs();
   }
 }
@@ -217,12 +197,11 @@ void verifyInput(char string[100]) {
 }
 
 int main() { 
-  
   char input[100];
   gets(input);
   verifyInput(input);
   
-  /*
+  /* for tests
   addTask("teste 1");
   addTask("teste 2");
   addTask("teste 3");
@@ -232,8 +211,6 @@ int main() {
   addTask("teste 7");
   */
 
-  getch();
-  //updateTasksIDs();
   getch();
   return 0;
 }

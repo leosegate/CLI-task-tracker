@@ -60,7 +60,7 @@ cJSON* createTask(char *desc, int id, char *dateTime) {
   cJSON_AddStringToObject(task, "description", desc);
   cJSON_AddStringToObject(task, "status", "to-do");
   cJSON_AddStringToObject(task, "createdAt", dateTime);
-  cJSON_AddStringToObject(task, "updatedAt", "");
+  cJSON_AddStringToObject(task, "updatedAt", "not updated yet");
   
   return task;
 }
@@ -73,6 +73,36 @@ char isEmpty(FILE *file) {
     return 1;
   }
   return 0;
+}
+
+void updateTime(int taskID) {
+  taskID--;
+  char *stringJson = NULL;
+  cJSON *task;
+  cJSON *insert;
+  char *dateTime = actualDate();
+  printf("%s\n", dateTime);
+  FILE *data = fopen("data.json", "r");
+  char buffer[1024];
+  int len = fread(buffer, 1, sizeof(buffer), data);
+  fclose(data);
+
+  cJSON *json = cJSON_Parse(buffer);
+  cJSON *array = cJSON_GetObjectItemCaseSensitive(json, "tasks");
+
+  task = cJSON_DetachItemFromArray(array, taskID);
+  stringJson = cJSON_Print(task);
+  insert = cJSON_CreateString(dateTime);
+  cJSON_ReplaceItemInObject(task, "updatedAt", insert);
+  cJSON_InsertItemInArray(array, taskID, task);
+  
+  stringJson = cJSON_Print(json);
+  data = fopen("data.json", "w");
+  fputs(stringJson, data);
+
+  cJSON_Delete(json);
+  cJSON_free(array);
+  cJSON_free(stringJson);
 }
 
 void updateTasksIDs() {
@@ -194,14 +224,19 @@ void verifyInput(char string[100]) {
   if(strcmp(str1, "delete") == 0) {
     deleteTask(atoi(str2));
   }
+  if(strcmp(str1, "mark-in-progress") == 0) {
+
+  }
 }
 
 int main() { 
   char input[100];
-  gets(input);
-  verifyInput(input);
+  //gets(input);
+  //verifyInput(input);
   
-  /* for tests
+  updateTime(7);
+
+  /* //for tests
   addTask("teste 1");
   addTask("teste 2");
   addTask("teste 3");

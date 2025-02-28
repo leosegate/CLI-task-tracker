@@ -37,7 +37,7 @@ char* actualDate(void) {
   strftime(text, sizeof(text)-1, "%d/%m/%Y - %H:%M", t);
   char *dateTime = malloc(100 * sizeof(char));
   strcpy(dateTime, text);
-  printf("%s\n", dateTime);
+  
   return dateTime;
 }
 
@@ -103,6 +103,7 @@ void updateTime(int taskID) {
   cJSON_Delete(json);
   cJSON_free(array);
   cJSON_free(stringJson);
+  fclose(data);
 }
 
 void updateTasksIDs() {
@@ -111,7 +112,7 @@ void updateTasksIDs() {
   FILE *data = fopen("data.json", "r");
   char buffer[1024];
   int len = fread(buffer, 1, sizeof(buffer), data);
-  tasksAmount = tasksLength(data);
+  tasksAmount = tasksLength(data) - 1;
   fclose(data);
   cJSON *task;
   cJSON *aux;
@@ -126,17 +127,18 @@ void updateTasksIDs() {
     stringJson = cJSON_Print(task);
   
     cJSON_InsertItemInArray(array, i, task);
-    cJSON_free(task);
-    cJSON_free(aux);
   }
 
   stringJson = cJSON_Print(json);
   data = fopen("data.json", "w");
   fputs(stringJson, data);
 
+  cJSON_free(task);
+  cJSON_free(aux);
   cJSON_Delete(json);
   cJSON_free(array);
   cJSON_free(stringJson);
+  fclose(data);
 } 
 
 void deleteTask(int id) {
@@ -234,9 +236,12 @@ int main() {
   //gets(input);
   //verifyInput(input);
   
-  updateTime(7);
-
-  /* //for tests
+  //for tests
+  
+  //updateTime(7);
+  //deleteTask(2);
+  
+  /*
   addTask("teste 1");
   addTask("teste 2");
   addTask("teste 3");

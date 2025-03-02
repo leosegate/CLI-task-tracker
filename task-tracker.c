@@ -214,6 +214,77 @@ void addTask(char *description) {
   }
 }
 
+char* formatString(char* string) {
+  int i, j;
+  int len = strlen(string);
+  char ch = '"';
+  for (i = j = 0; i < len; i++) {
+      if (string[i] != ch) {
+          string[j++] = string[i];
+      }
+  }
+  string[j] = '\0';
+  return string;
+}
+
+void listAllTasks() {
+  FILE *data = fopen("data.json", "r");
+  if (data == NULL) { 
+    printf("Error: Unable to open the file.\n");  
+  } else {
+    if(isEmpty(data)) 
+      printf("There is no tasks to list");
+    else {
+      char buffer[1024];
+      char *stringJson = NULL;
+      fread(buffer, 1, sizeof(buffer), data); 
+      int i;
+      int tasksAmount = tasksLength(data) - 1;
+    
+      fclose(data);
+
+      cJSON *task;
+      cJSON *taskID, *taskDescription, *taskStatus, *taskCreated, *taskUpdated;
+      cJSON *json = cJSON_Parse(buffer);
+      cJSON *array = cJSON_GetObjectItemCaseSensitive(json, "tasks");
+
+      for(i=0; i <= tasksAmount-1; i++) {
+        task = cJSON_DetachItemFromArray(array, 0);
+        
+        taskID = cJSON_DetachItemFromObject(task, "id");
+        stringJson = cJSON_PrintUnformatted(taskID);
+        formatString(stringJson);
+        printf("Task ID = %s\n", stringJson);
+
+        taskDescription = cJSON_DetachItemFromObject(task, "description");
+        stringJson = cJSON_PrintUnformatted(taskDescription);
+        formatString(stringJson);
+        printf("Description: %s\n", stringJson);
+
+        taskStatus = cJSON_DetachItemFromObject(task, "status");
+        stringJson = cJSON_PrintUnformatted(taskStatus);
+        formatString(stringJson);
+        printf("Status: %s\n", stringJson);
+
+        taskCreated = cJSON_DetachItemFromObject(task, "createdAt");
+        stringJson = cJSON_PrintUnformatted(taskCreated);
+        formatString(stringJson);
+        printf("Created at: %s\n", stringJson);
+
+        taskUpdated = cJSON_DetachItemFromObject(task, "updatedAt");
+        stringJson = cJSON_PrintUnformatted(taskUpdated);
+        formatString(stringJson);
+        printf("Updated at: %s\n", stringJson);
+
+        printf("===================\n");
+      }
+      cJSON_Delete(json);
+      cJSON_free(stringJson);
+    }   
+  }
+  fclose(data);
+}
+
 void verifyInput(char string[100]) {
   char *str1 = NULL, *str2 = NULL, *str3 = NULL;
   char commands[1][10] = {"add\0"};
@@ -226,15 +297,16 @@ void verifyInput(char string[100]) {
   if(strcmp(str1, "delete") == 0) {
     deleteTask(atoi(str2));
   }
-  if(strcmp(str1, "mark-in-progress") == 0) {
-
+  if(strcmp(str1, "list") == 0 && str2 == NULL) {
+    listAllTasks();
   }
 }
 
 int main() { 
   char input[100];
-  //gets(input);
-  //verifyInput(input);
+  gets(input);
+  system("cls");
+  verifyInput(input);
   
   //for tests
   
@@ -250,7 +322,6 @@ int main() {
   addTask("teste 6");
   addTask("teste 7");
   */
-
   getch();
   return 0;
 }

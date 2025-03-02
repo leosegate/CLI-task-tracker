@@ -81,7 +81,6 @@ void updateTime(int taskID) {
   cJSON *task;
   cJSON *insert;
   char *dateTime = actualDate();
-  printf("%s\n", dateTime);
   FILE *data = fopen("data.json", "r");
   char buffer[1024];
   int len = fread(buffer, 1, sizeof(buffer), data);
@@ -104,6 +103,47 @@ void updateTime(int taskID) {
   cJSON_free(array);
   cJSON_free(stringJson);
   fclose(data);
+}
+
+char* getOption(char* string) {
+  int i, j;
+  int len = strlen(string);
+  for (i = 5, j = 0; i < len; i++, j++) {
+    string[j] = string[i];
+  }
+  string[j++] = '\0';
+  return string;
+}
+
+void updateStatus(char *input, int taskID) {
+  taskID--;
+  char *status = getOption(input);
+  char *stringJson = NULL;
+  cJSON *task;
+  cJSON *newStatus;
+  FILE *data = fopen("data.json", "r");
+  char buffer[1024];
+  fread(buffer, 1, sizeof(buffer), data);
+  fclose(data);
+
+  cJSON *json = cJSON_Parse(buffer);
+  cJSON *array = cJSON_GetObjectItemCaseSensitive(json, "tasks");
+
+  task = cJSON_DetachItemFromArray(array, taskID);
+  newStatus = cJSON_CreateString(status);
+  cJSON_ReplaceItemInObject(task, "status", newStatus);
+  cJSON_InsertItemInArray(array, taskID, task);
+  
+  stringJson = cJSON_Print(json);
+  data = fopen("data.json", "w");
+  fputs(stringJson, data);
+
+  cJSON_Delete(json);
+  cJSON_free(array);
+  cJSON_free(stringJson);
+  fclose(data);
+  taskID++;
+  updateTime(taskID);
 }
 
 void updateTasksIDs() {
@@ -367,6 +407,11 @@ void verifyInput(char string[100]) {
       printf("%s isn't an option!", str2);
       getch();
     }
+  }
+  if((strcmp(str1, "mark-done") == 0 || strcmp(str1, "mark-in-progress") == 0) && str2 != NULL) {
+    updateStatus(str1, atoi(str2));
+  } else {
+    printf("%s isn't an option!", str1);
   }
 }
 

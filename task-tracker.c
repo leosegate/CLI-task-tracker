@@ -6,6 +6,14 @@
 #include "cJSON.h"
 #include "cJSON.c"
 
+int getFileSize(FILE *data) {
+  fseek(data, 0, SEEK_END);
+  int fileSize = ftell(data);
+  fseek(data, 0, SEEK_SET);
+
+  return fileSize;
+}
+
 void splitString(char string[100], char **str1, char **str2, char **str3) {
   int count = 0;
   char *aux = NULL;
@@ -42,9 +50,11 @@ char* actualDate(void) {
 }
 
 int tasksLength(FILE *file) {
+  int fileSize = getFileSize(file);
+  char buffer[fileSize];
+  
   fseek(file, 0, SEEK_SET);
   
-  char buffer[1024]; 
   int len = fread(buffer, 1, sizeof(buffer), file); 
   cJSON *json = cJSON_Parse(buffer);
   int length = (cJSON_GetArraySize(cJSON_GetObjectItemCaseSensitive(json, "tasks")) + 1);
@@ -82,7 +92,8 @@ void updateTime(int taskID) {
   cJSON *insert;
   char *dateTime = actualDate();
   FILE *data = fopen("data.json", "r");
-  char buffer[1024];
+  int fileSize = getFileSize(data);
+  char buffer[fileSize];
   int len = fread(buffer, 1, sizeof(buffer), data);
   fclose(data);
 
@@ -122,7 +133,8 @@ void updateStatus(char *input, int taskID) {
   cJSON *task;
   cJSON *newStatus;
   FILE *data = fopen("data.json", "r");
-  char buffer[1024];
+  int fileSize = getFileSize(data);
+  char buffer[fileSize];
   fread(buffer, 1, sizeof(buffer), data);
   fclose(data);
 
@@ -150,7 +162,8 @@ void updateTasksIDs() {
   int tasksAmount = 0, i = 0;
   char *stringJson = NULL;
   FILE *data = fopen("data.json", "r");
-  char buffer[1024];
+  int fileSize = getFileSize(data);
+  char buffer[fileSize];
   int len = fread(buffer, 1, sizeof(buffer), data);
   tasksAmount = tasksLength(data) - 1;
   fclose(data);
@@ -190,7 +203,8 @@ void deleteTask(int id) {
   } else if(isEmpty(data)) {
     printf("There are no tasks to delete!\n");
   } else {
-    char buffer[1024]; 
+    int fileSize = getFileSize(data);
+    char buffer[fileSize];
     int len = fread(buffer, 1, sizeof(buffer), data);
     fclose(data);
 
@@ -236,7 +250,8 @@ void addTask(char *description) {
     if(isEmpty(data)) 
       createJSONStructure();
 
-    char buffer[1024]; 
+    int fileSize = getFileSize(data);
+    char buffer[fileSize]; 
     int len = fread(buffer, 1, sizeof(buffer), data); 
     
     cJSON *json = cJSON_Parse(buffer);
@@ -275,7 +290,8 @@ void listAllTasks() {
     if(isEmpty(data)) 
       printf("There is no tasks to list");
     else {
-      char buffer[1024];
+      int fileSize = getFileSize(data);
+    char buffer[fileSize];
       char *stringJson = NULL;
       fread(buffer, 1, sizeof(buffer), data); 
       int i;
@@ -320,6 +336,9 @@ void listAllTasks() {
       cJSON_free(stringJson);
     }   
   }
+  printf("Press any key to continue!");
+  getch();
+  system("cls");
   fclose(data);
 }
 
@@ -331,7 +350,8 @@ void listTasksByStatus(char *status) {
     if(isEmpty(data)) 
       printf("There is no tasks to list");
     else {
-      char buffer[1024];
+      int fileSize = getFileSize(data);
+      char buffer[fileSize];
       char *stringJson = NULL;
       fread(buffer, 1, sizeof(buffer), data); 
       int i;
@@ -382,7 +402,55 @@ void listTasksByStatus(char *status) {
       cJSON_free(stringJson);
     }   
   }
+  printf("Press any key to continue!");
+  getch();
+  system("cls");
   fclose(data);
+}
+
+char verifyDigit(char *input) {
+  int i, len = strlen(input);
+  char isDigit = '1';
+
+  for(i = 0; i < len; i++) {
+    if(input[i] > '9' || input[i] < '0')
+      isDigit = '1';
+    else
+      isDigit = '0';
+      break;
+  }
+  return isDigit;
+}
+
+void updateDescription(int taskID, char *description) {
+  taskID--;
+  char *stringJson = NULL;
+  cJSON *task;
+  cJSON *newDescription;
+  FILE *data = fopen("data.json", "r");
+  int fileSize = getFileSize(data);
+  char buffer[fileSize];
+  fread(buffer, 1, sizeof(buffer), data);
+  fclose(data);
+
+  cJSON *json = cJSON_Parse(buffer);
+  cJSON *array = cJSON_GetObjectItemCaseSensitive(json, "tasks");
+
+  task = cJSON_DetachItemFromArray(array, taskID);
+  newDescription = cJSON_CreateString(description);
+  cJSON_ReplaceItemInObject(task, "description", newDescription);
+  cJSON_InsertItemInArray(array, taskID, task);
+  
+  stringJson = cJSON_Print(json);
+  data = fopen("data.json", "w");
+  fputs(stringJson, data);
+
+  cJSON_Delete(json);
+  cJSON_free(array);
+  cJSON_free(stringJson);
+  fclose(data);
+  taskID++;
+  updateTime(taskID);
 }
 
 void verifyInput(char string[100]) {
@@ -393,9 +461,15 @@ void verifyInput(char string[100]) {
   
   if(strcmp(str1, "add") == 0) {
     addTask(str2);
+    printf("Task added! Press any key to continue.");
+    getch();
+    system("cls");
   }
-  if(strcmp(str1, "delete") == 0) {
+  if(strcmp(str1, "delete") == 0 && verifyDigit(str2)) {
     deleteTask(atoi(str2));
+    printf("Task deleted! Press any key to continue.");
+    getch();
+    system("cls");
   }
   if(strcmp(str1, "list") == 0 && str2 == NULL) {
     listAllTasks();
@@ -404,37 +478,38 @@ void verifyInput(char string[100]) {
     if(strcmp(str2, "todo") == 0 || strcmp(str2, "done") == 0 || strcmp(str2, "in-progress") == 0)
       listTasksByStatus(str2);
     else {
-      printf("%s isn't an option!", str2);
+      printf("%s isn't an option! Press any key to continue.", str2);
       getch();
+      system("cls");
     }
   }
-  if((strcmp(str1, "mark-done") == 0 || strcmp(str1, "mark-in-progress") == 0) && str2 != NULL) {
+  if((strcmp(str1, "mark-done") == 0 || strcmp(str1, "mark-in-progress") == 0) && verifyDigit(str2)) {
     updateStatus(str1, atoi(str2));
-  } else {
-    printf("%s isn't an option!", str1);
+    printf("Status updated! Press any key to continue.");
+    getch();
+    system("cls");
+  }
+
+  if(strcmp(str1, "update") == 0 && verifyDigit(str2) && str3 != NULL) {
+    updateDescription(atoi(str2), str3);
+    printf("Description updated! Press any key to continue.");
+    getch();
+    system("cls");
   }
 }
 
 int main() { 
   char input[100];
-  gets(input);
-  system("cls");
-  verifyInput(input);
-  
-  //for tests
-  
-  //updateTime(7);
-  //deleteTask(2);
-  
-  /*
-  addTask("teste 1");
-  addTask("teste 2");
-  addTask("teste 3");
-  addTask("teste 4");
-  addTask("teste 5");
-  addTask("teste 6");
-  addTask("teste 7");
-  */
-  getch();
+
+  while (1) {
+    printf(">");
+    fgets(input, sizeof(input), stdin);
+    input[strcspn(input, "\n")] = 0;
+    system("cls");
+    if (input[0] == 27) {
+      break;
+    }
+    verifyInput(input);
+  }  
   return 0;
 }
